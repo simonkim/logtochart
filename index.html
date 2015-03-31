@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+  .dropzone {
+    height: 75px;
+    border: 1px solid #000;
+    margin: 10px 5px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="drop_zone" class="dropzone">Drop files here</div>
+<output >
+  <div id="list">
+  </div>
+  <ul id="lines">
+  </ul>
+</output>
+
+<script>
+  function onloadText(text) {
+    var lines = text.match(/[^\r\n]+/g);
+    var list = document.getElementById('lines');
+    for( var i = 0; i < lines.length; i++ ) {
+      var item = document.createElement('li');
+      item.innerHTML = lines[i];
+      list.insertBefore(item, null);
+    }
+
+  }
+  function handleFileSelect(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+
+    var files = evt.dataTransfer.files; // FileList object.
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    for (var i = 0, f; f = files[i]; i++) {
+      output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                  f.size, ' bytes, last modified: ',
+                  f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                  '</li>');
+
+      var reader = new FileReader();
+
+      // Closure to capture the file information.
+      reader.onload = (function(theFile) {
+        return function(e) {
+          console.log('onload()');
+          onloadText(e.target.result);
+        };
+      })(f);
+      reader.readAsText(f, 'UTF-8');
+    }
+
+
+
+    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+
+  }
+
+  function handleDragOver(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+  }
+
+  // Setup the dnd listeners.
+  var dropZone = document.getElementById('drop_zone');
+  dropZone.addEventListener('dragover', handleDragOver, false);
+  dropZone.addEventListener('drop', handleFileSelect, false);
+</script>
+</body>
+</html>
